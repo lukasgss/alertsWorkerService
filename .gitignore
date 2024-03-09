@@ -1,0 +1,5 @@
+/WorkerService/appsettings.json
+/WorkerService/appsettings.Development.json
+/*/bin
+/*/obj
+.idea
