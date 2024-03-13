@@ -1,27 +1,23 @@
-using Application.Common.Interfaces;
+using WorkerService.Interfaces;
 
 namespace WorkerService;
 
 public class Worker : BackgroundService
 {
-    private readonly IAlertsQueueService _alertsQueueService;
-    public Worker(IAlertsQueueService alertsQueueService)
-    {
-        _alertsQueueService = alertsQueueService ?? throw new ArgumentNullException(nameof(alertsQueueService));
-    }
+	private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                _alertsQueueService.ConsumeAlerts();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-    }
+	public Worker(IServiceScopeFactory serviceScopeFactory)
+	{
+		_serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
+	}
+
+	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+	{
+		using IServiceScope scope = _serviceScopeFactory.CreateScope();
+
+		IScopedProcessingService scopedProcessingService =
+			scope.ServiceProvider.GetRequiredService<IScopedProcessingService>();
+
+		scopedProcessingService.Execute(stoppingToken);
+	}
 }
